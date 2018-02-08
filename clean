@@ -1,0 +1,1 @@
+rm -f *.go end_game move_file history_file *.pyc
