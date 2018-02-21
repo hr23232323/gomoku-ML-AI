@@ -13,6 +13,8 @@ class Game(object):
     def start(self):
         for player in cycle((self.player_1, self.player_2)):
             move = player.move(self.board)
+            print(move)
+            print(self.board)
 
             self.board = self.board.after(move)
 
@@ -46,6 +48,7 @@ class Announcer(GameObserver):
     def on_move(self, board):
         print(board)
         print()
+        print("Deciding move...")
 
     def on_end(self, board):
         print((None, 'Black', 'White')[board.winner] + " won!")

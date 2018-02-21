@@ -3,8 +3,10 @@ from board import Stone
 from game import Player
 from registry import register
 
-def iterative_alpha_beta(state, heuristic, max_depth=30, max_seconds=8):
+def iterative_alpha_beta(state, heuristic, max_depth=4, max_seconds=8):
     start_time = time()
+    #moves =
+
     def alpha_beta_search(state, alpha, beta, depth):
         def min_value(state, alpha, beta, depth):
             val = float('inf')
@@ -36,6 +38,7 @@ def iterative_alpha_beta(state, heuristic, max_depth=30, max_seconds=8):
     best_move = None
     val = -float('inf')
     for depth in range(1, max_depth):  # TODO: cache results
+        print('depth: ', depth)
         if time() - start_time > max_seconds:
             break
         for move in state.moves:
@@ -49,7 +52,7 @@ def iterative_alpha_beta(state, heuristic, max_depth=30, max_seconds=8):
 
 @register('ab')
 class AlphaBetaPlayer(Player):
-    def __init__(self, heuristic, max_depth=30, max_seconds=2):
+    def __init__(self, heuristic, max_depth=4, max_seconds=2):
         self.heuristic = heuristic
         self.max_depth = max_depth
         self.max_seconds = max_seconds

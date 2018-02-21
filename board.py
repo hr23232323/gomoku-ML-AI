@@ -31,6 +31,7 @@ class Board(object):
         return cls(np.zeros((size, size), dtype=np.int8), size, run, None, Stone.black, 0)
 
     def after(self, move):
+        #print(self.grid[move])
         if self.grid[move] != Stone.empty and self.turn_count != 1:
             raise ValueError('{} already has a stone in it.'.format(move))
         new_board = Board(self.grid.copy(), self.size, self.run, move, self.next_player * -1, self.turn_count + 1)
@@ -41,11 +42,28 @@ class Board(object):
     @property
     def moves(self):
         """Get a list of all valid moves for the `next_player`"""
+        print('moves called')
         if self._moves is None:
             empty_spots = np.argwhere(self.grid == (self.grid if self.turn_count == 1 else 0))
             np.random.shuffle(empty_spots)
             self._moves = list(map(tuple, empty_spots))
         return self._moves 
+
+    @property
+    def moves_to_check(self):
+        empty_spots = np.argwhere(self.grid != (self.grid if self.turn_count == 1 else 0))
+        # define a 3x3 mask
+        # put on mask on every element inside empty spots while no index error
+        area_mask = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
+        interesting_moves = []
+        for i in range(empty_spots.size//2):
+            for j in range(len(area_mask)):
+                if(empty_spots.size != 0):
+                    interesting_moves.append(empty_spots[i] + area_mask[j])
+        interesting_moves = list(map(tuple, interesting_moves))
+        #print(interesting_moves)
+
+        return interesting_moves
     
     @property
     def winner(self):
