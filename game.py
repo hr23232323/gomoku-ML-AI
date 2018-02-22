@@ -13,9 +13,8 @@ class Game(object):
     def start(self):
         for player in cycle((self.player_1, self.player_2)):
             move = player.move(self.board)
-            print(move)
-            print(self.board)
-
+            #print('move in start', move)
+            #print(self.board)
             self.board = self.board.after(move)
 
             for observer in self.observers:
@@ -33,6 +32,7 @@ class Game(object):
 class Player(ABC):
     @abstractmethod
     def move(self, board):
+        print('move from game called')
         pass
 
 

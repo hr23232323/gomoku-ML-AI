@@ -10,7 +10,7 @@ class Stone(IntEnum):
 
 class Board(object):
     __slots__ = ('grid', 'size', 'run', 'last_move', 'next_player', 'turn_count',
-                 '_successors', '_winner', '_moves', '_is_terminal', '_is_full')
+                 '_successors', '_winner', '_moves', '_is_terminal', '_is_full', '_moves_to_check')
     def __init__(self, grid, size, run, last_move, next_player, turn_count):
         self.grid = grid
         self.size = size 
@@ -24,6 +24,7 @@ class Board(object):
         self._moves = None
         self._is_terminal = None
         self._is_full = None
+        self._moves_to_check = None
 
     @classmethod
     def empty(cls, size=15, run=5):
@@ -31,6 +32,8 @@ class Board(object):
         return cls(np.zeros((size, size), dtype=np.int8), size, run, None, Stone.black, 0)
 
     def after(self, move):
+        if move is None:
+            raise ValueError('None passed')
         #print(self.grid[move])
         if self.grid[move] != Stone.empty and self.turn_count != 1:
             raise ValueError('{} already has a stone in it.'.format(move))
@@ -40,30 +43,59 @@ class Board(object):
         return new_board
 
     @property
+    def position_value(self, move):
+        """Get the value of stone (white, black, empty) at a certain location"""
+        print('posi vale move',list(move))
+        return self.grid[move]
+
+    @property
     def moves(self):
         """Get a list of all valid moves for the `next_player`"""
-        print('moves called')
+        #print('moves called')
         if self._moves is None:
+            #print('inside loop of moves')
             empty_spots = np.argwhere(self.grid == (self.grid if self.turn_count == 1 else 0))
+            #print('size', empty_spots.size)
             np.random.shuffle(empty_spots)
             self._moves = list(map(tuple, empty_spots))
         return self._moves 
 
     @property
     def moves_to_check(self):
-        empty_spots = np.argwhere(self.grid != (self.grid if self.turn_count == 1 else 0))
-        # define a 3x3 mask
-        # put on mask on every element inside empty spots while no index error
-        area_mask = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
-        interesting_moves = []
-        for i in range(empty_spots.size//2):
-            for j in range(len(area_mask)):
-                if(empty_spots.size != 0):
-                    interesting_moves.append(empty_spots[i] + area_mask[j])
-        interesting_moves = list(map(tuple, interesting_moves))
-        #print(interesting_moves)
+        print('moves_to_check called')
+        if self._moves_to_check is None:
+            print('inside moves to check loop')
+            taken_spots = np.argwhere(self.grid != (self.grid if self.turn_count == 1 else 0))
+            empty_spots = np.argwhere(self.grid == (self.grid if self.turn_count == 1 else 0))
 
-        return interesting_moves
+
+            # define a 3x3 mask
+            # put on mask on every element inside empty spots while no index error
+            area_mask = [(-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1)]
+            interesting_moves = []
+
+            if (taken_spots.size != 0):
+                for i in range(taken_spots.size//2):
+                    for j in range(len(area_mask)):
+                        print((list(taken_spots[i] + area_mask[j])))
+                        print('added places', self.position_value(self, (list(taken_spots[i] + area_mask[j]))))
+                        #print('ts: ', taken_spots[i], 'am: ', area_mask[j])
+                        #print('sum', list(taken_spots[i] + area_mask[j]))
+                        if(self.position_value(list(taken_spots[i] + area_mask[j])) == 0):
+                            interesting_moves.append(taken_spots[i] + area_mask[j])
+            else:
+                #print('empty spots', empty_spots)
+                for i in range(5):
+                    for j in range(5):
+                        interesting_moves.append(empty_spots[80 + (i * 15) + j])
+                #print('interesting moves', interesting_moves)
+
+
+            self._moves_to_check = list(map(tuple, interesting_moves))
+
+        #print(empty_spots)
+        #print('interesting moves before return', interesting_moves)
+        return self._moves_to_check
     
     @property
     def winner(self):

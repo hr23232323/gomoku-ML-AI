@@ -35,12 +35,15 @@ def winning_windows(state):
     r = state.run    
     v = np.zeros(r - 1)
     ve = np.zeros(r - 1)
+    #print(r, v, ve)
     for section in state.sections:
+        #print(section)
         if section.size < r:
             continue
         windows = rolling_window(section, r)
         
         for window in windows:
+            #print(window)
             unique, _ = np.unique(window, return_counts=True)
             if set(unique) == set([0, 1]):
                 window_count = window.sum()
@@ -49,3 +52,31 @@ def winning_windows(state):
                 window_count = window.sum() * -1
                 ve[window_count - 1] += 1
     return np.multiply(np.arange(1, 5)**2, v).sum() 
+
+
+
+# Return # of open 3 in a row * points attached
+@register('open3')
+def open_3(state):
+    row_3 = np.array([0, 1, 1, 1, 0])
+    r = state.run
+    friendly_windows = 0
+
+    for section in state.sections:
+        if section.size < r:
+            continue
+        windows = rolling_window(section, r)
+
+        for window in windows:
+            #print(window, row_3)
+            if(np.array_equal(window, row_3)):
+                print('w', 'r', window)
+                friendly_windows += 1
+
+    if(friendly_windows > 0):
+        print(friendly_windows)
+    #print('\n')
+
+
+    return friendly_windows + winning_windows(state)
+
