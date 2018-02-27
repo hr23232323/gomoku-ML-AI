@@ -42,16 +42,13 @@ class Board(object):
 
         return new_board
 
-    @property
     def position_value(self, move):
         """Get the value of stone (white, black, empty) at a certain location"""
-        print('posi vale move',list(move))
         return self.grid[move]
 
     @property
     def moves(self):
         """Get a list of all valid moves for the `next_player`"""
-        #print('moves called')
         if self._moves is None:
             #print('inside loop of moves')
             empty_spots = np.argwhere(self.grid == (self.grid if self.turn_count == 1 else 0))
@@ -62,11 +59,9 @@ class Board(object):
 
     @property
     def moves_to_check(self):
-        print('moves_to_check called')
         if self._moves_to_check is None:
-            print('inside moves to check loop')
             taken_spots = np.argwhere(self.grid != (self.grid if self.turn_count == 1 else 0))
-            empty_spots = np.argwhere(self.grid == (self.grid if self.turn_count == 1 else 0))
+            np.random.shuffle(taken_spots)
 
 
             # define a 3x3 mask
@@ -76,26 +71,30 @@ class Board(object):
 
             if (taken_spots.size != 0):
                 for i in range(taken_spots.size//2):
-                    for j in range(len(area_mask)):
-                        print((list(taken_spots[i] + area_mask[j])))
-                        print('added places', self.position_value(self, (list(taken_spots[i] + area_mask[j]))))
-                        #print('ts: ', taken_spots[i], 'am: ', area_mask[j])
-                        #print('sum', list(taken_spots[i] + area_mask[j]))
-                        if(self.position_value(list(taken_spots[i] + area_mask[j])) == 0):
-                            interesting_moves.append(taken_spots[i] + area_mask[j])
+                    for value in area_mask:
+                        current_position = value + taken_spots[i]
+                        if(not self.out_of_bounds(current_position[0], current_position[1])):
+                            continue
+                        
+                        if(self.__getitem__(current_position[0], [current_position[1]]) == Stone.empty):
+                            interesting_moves.append(value + taken_spots[i])
             else:
-                #print('empty spots', empty_spots)
-                for i in range(5):
-                    for j in range(5):
-                        interesting_moves.append(empty_spots[80 + (i * 15) + j])
-                #print('interesting moves', interesting_moves)
+                interesting_moves = Board.moves.__get__(self)
 
-
+            #print(interesting_moves)
             self._moves_to_check = list(map(tuple, interesting_moves))
 
-        #print(empty_spots)
-        #print('interesting moves before return', interesting_moves)
         return self._moves_to_check
+
+    def out_of_bounds(self, index0, index1):
+        counter = True 
+        #print(index0, index1)
+
+        if(index0 < 0 or index0 > 14 or index1 < 0 or index1 > 14):
+            counter = False
+
+        return counter
+
     
     @property
     def winner(self):
@@ -216,8 +215,8 @@ class Board(object):
     def sections(self):
         return list(self.grid) + list(self.grid.T) + self.diag_sections
 
-    def __getitem__(self, index):
-        return self.grid[index]
+    def __getitem__(self, index0, index1):
+        return self.grid[index0][index1]
 
     def __str__(self):
         return np.array2string(self.grid, formatter={'int': lambda x: ('_', 'X', 'O')[x]})

@@ -5,52 +5,53 @@ from registry import register
 
 def iterative_alpha_beta(state, heuristic, max_depth=10, max_seconds=8):
     start_time = time()
-    #moves =
 
     def alpha_beta_search(state, alpha, beta, depth):
         def min_value(state, alpha, beta, depth):
             val = float('inf')
 
-            for move in state.moves:
+            for move in state.moves_to_check:
                 next_state = state.after(move)
                 val = min(val, alpha_beta_search(next_state, alpha, beta, depth - 1))
                 beta = min(beta, val)
                 if beta <= alpha:
                     break
             return val
+
         def max_value(state, alpha, beta, depth):
             val = -float('inf')
-            for move in state.moves:
+
+            for move in state.moves_to_check:
                 next_state = state.after(move)
                 val = max(val, alpha_beta_search(next_state, alpha, beta, depth - 1))
                 alpha = max(alpha, val)                
                 if beta <= alpha:
                     break
             return val
+
         if state.is_terminal:
                 return state.winner * float('inf')
+        
         if depth <= 0 or time() - start_time >= max_seconds:
             return heuristic(state)
+        
         if state.next_player == Stone.black:  # If last move is None this still works
             return max_value(state, alpha, beta, depth)
+        
         else:
             return min_value(state, alpha, beta, depth)
 
     best_move = None
     val = -float('inf')
     for depth in range(1, max_depth):  # TODO: cache results
-        #print('depth: ', depth)
-        #print(state.moves_to_check)
         if time() - start_time > max_seconds:
             break
-        for move in state.moves:
+        for move in state.moves_to_check:
             next_state = state.after(move)
             score = alpha_beta_search(next_state, -float('inf'), float('inf'), depth) * state.next_player
-            #print('s, v, bm, m', score, val, best_move, move)
-            #print('pv', state.position_value(move))
+
             if score > val:
                 val, best_move = score, move
-    #print('best_move', best_move)
     return best_move
 
 
